@@ -1,28 +1,526 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Advent Calendar</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="snow"></div>
-<div class="wrapper">
-<h1>Advent Calendar</h1>
-<div id="calendar"></div>
-</div>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cosy Critter Countdown</title>
+  <style>
+    :root{
+      --bg:#f7f4ee;
+      --card:#fff6eb;
+      --accent:#e65b3a;
+      --muted:#b8a089;
+      --glass: rgba(255,255,255,0.6);
+    }
+    html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;}
+    body{
+      background: linear-gradient(180deg,#f1f6fb 0%, var(--bg) 60%);
+      color:#3b2e2a;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+      box-sizing:border-box;
+    }
 
-<div class="modal-backdrop" id="owlBackdrop" aria-hidden="true">
-  <div class="modal owl-modal">
-    <div class="animal"><div id="owlImage" class="big"></div></div>
+    .wrapper{
+      width:100%;
+      max-width:1100px;
+      background: var(--card);
+      border-radius:18px;
+      box-shadow: 0 12px 40px rgba(38,30,22,0.12);
+      padding:28px;
+      box-sizing:border-box;
+      position:relative;
+    }
+    </style>
+
+<div class="modal-backdrop" id="owlBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal owl-modal" role="document" aria-label="Locked day">
+    <div class="animal">
+      <div id="owlImage" class="big"></div>
+    </div>
     <div>
-      <h2>Not Today!</h2>
-      <p>That’s not today you cheeky, chupa, cabra…<br><strong>✨THE CHEEKIEST✨</strong></p>
-      <button id="owlCloseBtn">Okay</button>
+      <h2 style="margin:0;">Not Today!</h2>
+      <p style="margin-top:8px;color:#5a463f;">
+        That’s not today you cheeky, chupa, cabra…<br>
+        <strong>✨THE CHEEKIEST✨</strong>
+      </p>
+      <div class="controls">
+        <button class="btn" id="owlCloseBtn">Okay</button>
+      </div>
     </div>
   </div>
 </div>
 
-<script src="script.js"></script>
+
+.owl-modal {
+  grid-template-columns: 200px 1fr;
+}
+
+#owlImage.big {
+  background-image: url("https://i.imgur.com/5Ag1xN3.png"); /* cartoon grumpy owl */
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+    header{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    header h1{font-size:20px;margin:0;letter-spacing:-0.2px}
+    header p{margin:0;color:var(--muted);font-size:13px}
+
+    /* Grid */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap:12px;
+    }
+    @media (max-width:760px){
+      .grid{grid-template-columns: repeat(4, 1fr)}
+    }
+    @media (max-width:420px){
+      .grid{grid-template-columns: repeat(3, 1fr)}
+    }
+
+    .tile{
+      aspect-ratio:1 / 1;
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+      box-shadow: 0 6px 12px rgba(30,20,10,0.06);
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      position:relative;
+      cursor:pointer;
+      overflow:hidden;
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .tile .thumb{
+      position:absolute;
+      inset:0;
+      background-repeat:no-repeat;
+      background-size: contain;
+      background-position: center;
+      transform-origin:center;
+      transition: transform 220ms ease;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.08));
+    }
+    .tile:hover .thumb{ transform: translateY(-6px) scale(1.02); }
+
+    .tile .num{
+      position:relative;
+      z-index:2;
+      background: linear-gradient(90deg, rgba(255,255,255,0.92), rgba(255,255,255,0.85));
+      border-radius:999px;
+      padding:6px 10px;
+      margin:10px;
+      font-weight:700;
+      color:#fff;
+      background-color: var(--accent);
+      box-shadow: 0 6px 12px rgba(230,91,58,0.12);
+      font-size:14px;
+    }
+
+    /* modal */
+    .modal-backdrop{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background: linear-gradient(180deg, rgba(12,10,8,0.42), rgba(12,10,8,0.22));
+      z-index:60;
+    }
+    .modal{
+      width:min(820px, 94%);
+      background: #fff;
+      border-radius:14px;
+      padding:20px;
+      display:grid;
+      grid-template-columns: 260px 1fr;
+      gap:18px;
+      align-items:center;
+      box-shadow: 0 30px 70px rgba(15,10,8,0.26);
+    }
+    @media (max-width:760px){ .modal{ grid-template-columns: 1fr; } }
+
+    .modal .animal{
+      width:100%;
+      height:100%;
+      aspect-ratio:1/1;
+      border-radius:12px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      background: var(--glass);
+    }
+
+    .modal .animal .big{
+      width:86%;
+      height:86%;
+      background-repeat:no-repeat;
+      background-size: contain;
+      background-position:center;
+      transition: transform 240ms cubic-bezier(.2,.9,.3,1);
+      cursor:pointer;
+      will-change: transform;
+    }
+
+    .modal h2{margin:0;font-size:18px}
+    .modal p{margin-top:8px;color:#5a463f;line-height:1.45}
+
+    .modal .controls{
+      margin-top:12px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .btn{
+      background:var(--accent);
+      color:#fff;
+      padding:8px 12px;
+      border-radius:10px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
+      box-shadow: 0 8px 16px rgba(230,91,58,0.12);
+    }
+    .btn.secondary{ background:transparent;color:var(--accent); border:1px solid rgba(230,91,58,0.12); box-shadow:none; }
+
+    /* wiggle */
+    @keyframes wiggle {
+      0%{ transform: rotate(0deg); }
+      15%{ transform: rotate(-8deg); }
+      35%{ transform: rotate(6deg); }
+      55%{ transform: rotate(-4deg); }
+      75%{ transform: rotate(3deg); }
+      100%{ transform: rotate(0deg); }
+    }
+    .wiggle{ animation: wiggle 640ms cubic-bezier(.2,.9,.3,1); }
+
+    /* small footer */
+    footer{ margin-top:18px;color:var(--muted); font-size:13px }
+  </style>
+</head>
+<body>
+  <div class="wrapper" role="application" aria-label="Cosy Critter Countdown">
+    <header>
+      <div style="width:58px;height:58px;border-radius:12px;background:linear-gradient(180deg,#fff,#ffeae2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);box-shadow:0 6px 18px rgba(0,0,0,0.06)">24</div>
+      <div>
+        <h1>Cosy Critter Countdown</h1>
+        <p>Open a door, meet a silly animal, and find a little love-note from me ❤️</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid" id="calendarGrid" aria-live="polite">
+        <!-- tiles inserted by JS -->
+      </div>
+    </main>
+
+    <footer>
+      Tip: click an animal to make them wiggle. Built with love.
+    </footer>
+  </div>
+
+  <!-- modal -->
+  <div class="modal-backdrop" id="backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document" aria-label="Door content">
+      <div class="animal">
+        <div id="modalImage" class="big" title="Tap me to wiggle"></div>
+      </div>
+      <div>
+        <h2 id="modalTitle">Title</h2>
+        <p id="modalMessage">Message</p>
+        <div class="controls">
+          <button class="btn" id="closeBtn">Close</button>
+          <button class="btn secondary" id="revealLineBtn">Reveal next line</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ---- CONFIG ----------------------------------------------------------------
+  // Path to the 4x6 grid sprite image (you uploaded this file).
+  const SPRITE_PATH = '/mnt/data/A_series_of_24_digital_illustrations_in_a_4x6_grid.png';
+
+  // 4 columns x 6 rows
+  const COLS = 4;
+  const ROWS = 6;
+
+  // The 24 animals & messages (silly-romantic)
+  const DAYS = [
+    {name:'Penguin',   short:'A penguin with a tiny gift', lines:[
+      "I’d waddle through blizzards for one extra hug from you.",
+      "You make my ribs warm even in January."
+    ]},
+    {name:'Otter',     short:'An otter sliding with a box', lines:[
+      "I’d slide across any icy patch if it meant seeing you smile.",
+      "Your laugh is my favourite current."
+    ]},
+    {name:'Panda',     short:'A cuddly gift-bearing panda', lines:[
+      "You are my soft spot and my favourite bamboo snack.",
+      "Being with you turns ordinary days into cuddly holidays."
+    ]},
+    {name:'Bunny',     short:'A bunny with a cosy scarf', lines:[
+      "I want to tuck you into every chilly night.",
+      "Your kindness hops straight to my heart."
+    ]},
+    {name:'Sphinx Cat',short:'A regal sphinx cat', lines:[
+      "You command my attention like a royal cat demands chin-scratches.",
+      "Mysterious, elegant, and utterly mine."
+    ]},
+    {name:'Fox',       short:'A fox holding a present', lines:[
+      "You’re clever, warm, and always a little sparkly.",
+      "I love the way you light up a room."
+    ]},
+    {name:'Snowy Owl', short:'An owl with a tiny Santa hat', lines:[
+      "If wisdom had fluff, it would look like you.",
+      "You’re the softest wise thing in my life."
+    ]},
+    {name:'Seal',      short:'A seal balancing an ornament', lines:[
+      "I’d do silly balancing acts just to make you grin.",
+      "You make my heart clap like tiny flippers."
+    ]},
+    {name:'Hedgehog',  short:'A hedgehog wrapped in fairy-lights', lines:[
+      "Even your prickly bits are adorable to me.",
+      "I love you — every little light and quill."
+    ]},
+    {name:'Beaver',    short:'A beaver carrying ribbon', lines:[
+      "You help me build better days, like the best dam ever.",
+      "You stick with me better than any timber."
+    ]},
+    {name:'Koala',     short:'A koala with a cocoa mug', lines:[
+      "Let’s be lazily in love together, forever.",
+      "Your hugs are my favourite slow moments."
+    ]},
+    {name:'Cockapoo',  short:'A cheerful cockapoo with a bow', lines:[
+      "You’re my waggiest, warmest comfort.",
+      "I’d fetch your heart and bring it home every day."
+    ]},
+    {name:'Red Panda', short:'A mischievous red panda', lines:[
+      "You’re my adorable little bandit of joy.",
+      "Stealing your heart would be the best heist."
+    ]},
+    {name:'Mouse',     short:'A mouse with an ornament', lines:[
+      "Tiny but mighty — that’s how I feel for you.",
+      "You make even the smallest things sparkle."
+    ]},
+    {name:'Deer',      short:'A reindeer with a green scarf', lines:[
+      "You guide me gently, like a lantern through winter.",
+      "My compass always points toward you."
+    ]},
+    {name:'Squirrel',  short:'A squirrel holding a tiny tree', lines:[
+      "You stash all the best memories in my heart.",
+      "Let’s keep gathering little adventures together."
+    ]},
+    {name:'Dachshund', short:'A long dog with a joyful present', lines:[
+      "Short legs, big love — that’s us.",
+      "I stretch for you in every silly way."
+    ]},
+    {name:'Robin',     short:'A robin in a cosy sock', lines:[
+      "You bring cheer to even the greyest days.",
+      "My chest is warm because of you."
+    ]},
+    {name:'Otter 2',   short:'A second playful otter cameo', lines:[
+      "Two otters are better than one — like us.",
+      "I’m better when we float together."
+    ]},
+    {name:'Penguin 2', short:'A romantic penguin pair', lines:[
+      "Cold outside, warm with you.",
+      "I’ll share my scarf, my cocoa, my everything."
+    ]},
+    {name:'Squirrel 2',short:'A cheeky squirrel with a tree', lines:[
+      "You’re the tree to my squirrel — steady and full of nuts.",
+      "I stash all my love for you."
+    ]},
+    {name:'Hedgehog 2',short:'A second hedgehog (more lights!)', lines:[
+      "Lights, hugs, and you — perfect trio.",
+      "You're the sparkle on my prickly days."
+    ]},
+    {name:'Fox 2',     short:'A fox with a sleepy smile', lines:[
+      "Clever, sleepy, full of warmth — a lot like our Sundays.",
+      "Let’s nap through the next winter together."
+    ]}
+  ];
+  // --------------------------------------------------------------------------------
+
+  // Build grid and load sprite cropping on ready
+  (function(){
+    const grid = document.getElementById('calendarGrid');
+    const backdrop = document.getElementById('backdrop');
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const closeBtn = document.getElementById('closeBtn');
+    const revealBtn = document.getElementById('revealLineBtn');
+
+    // Prepare tiles DOM
+    for (let i=0;i<24;i++){
+      const tile = document.createElement('button');
+      tile.className = 'tile';
+      tile.setAttribute('aria-label', `Day ${i+1}: ${DAYS[i].name}`);
+      tile.dataset.index = i;
+      // thumb will hold background-positioned crop
+      const thumb = document.createElement('div');
+      thumb.className = 'thumb';
+      tile.appendChild(thumb);
+      const num = document.createElement('div');
+      num.className = 'num';
+      num.textContent = (i+1);
+      tile.appendChild(num);
+
+      tile.addEventListener('click', ()=> openDay(i));
+      grid.appendChild(tile);
+    }
+
+    // Load sprite to discover natural size
+    const spriteImg = new Image();
+    spriteImg.onload = function(){
+      const SPRITE_W = spriteImg.naturalWidth;
+      const SPRITE_H = spriteImg.naturalHeight;
+      const cellW = Math.round(SPRITE_W / COLS);
+      const cellH = Math.round(SPRITE_H / ROWS);
+
+      // assign each thumb background with correct offset
+      const tiles = document.querySelectorAll('.tile .thumb');
+      tiles.forEach((thumb, idx) => {
+        const col = idx % COLS;
+        const row = Math.floor(idx / COLS);
+        // We will set background-size to the natural full-size so that pixel cropping is exact,
+        // then set background-position to negative offsets to show the targeted crop.
+        thumb.style.backgroundImage = `url("${SPRITE_PATH}")`;
+        thumb.style.backgroundSize = `${SPRITE_W}px ${SPRITE_H}px`;
+        thumb.style.backgroundPosition = `-${col * cellW}px -${row * cellH}px`;
+        // ensure we display center/contain so thumbnail looks nice
+        thumb.style.backgroundRepeat = 'no-repeat';
+        // Use transform scale to fit inside tile nicely (so crop is visible)
+        thumb.style.backgroundOrigin = 'top left';
+      });
+
+      // store these for modal cropping
+      window.__spriteMeta = {SPRITE_W, SPRITE_H, cellW, cellH};
+    };
+    spriteImg.onerror = function(){
+      console.error('Failed to load sprite image. Make sure the path is correct:', SPRITE_PATH);
+      alert('Image failed to load. Please ensure the sprite image exists at: ' + SPRITE_PATH);
+    };
+    // start loading sprite
+    spriteImg.src = SPRITE_PATH;
+
+    // open day modal
+    // REAL DATE
+const today = new Date();
+const currentDay = today.getDate();
+
+// If they click ahead of time → show the OWL
+if (i + 1 > currentDay) {
+  showOwl();
+  return;
+}
+    let currentLineIndex = 0;
+    function openDay(i){
+      const meta = window.__spriteMeta;
+      if(!meta){
+        // sprite not loaded yet — simple fallback: just show text
+        modalTitle.textContent = DAYS[i].name;
+        modalMessage.textContent = DAYS[i].lines.join(' ');
+        modalImage.style.backgroundImage = '';
+        showModal();
+        return;
+      }
+      currentLineIndex = 0;
+      const {SPRITE_W, SPRITE_H, cellW, cellH} = meta;
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      // For the modal big image we create a background cropped to the exact tile,
+      // but we can scale it up by using CSS background-size = natural size.
+      modalImage.style.backgroundImage = `url("${SPRITE_PATH}")`;
+      modalImage.style.backgroundSize = `${SPRITE_W}px ${SPRITE_H}px`;
+      modalImage.style.backgroundPosition = `-${col * cellW}px -${row * cellH}px`;
+      // store index for reveal
+      modalTitle.textContent = DAYS[i].name;
+      modalMessage.textContent = DAYS[i].lines[0];
+      revealBtn.disabled = (DAYS[i].lines.length <= 1);
+      revealBtn.dataset.dayIndex = i;
+      showModal();
+    }
+
+    closeBtn.addEventListener('click', hideModal);
+    backdrop.addEventListener('click', (e)=> {
+      if(e.target === backdrop) hideModal();
+    });
+
+    revealBtn.addEventListener('click', ()=>{
+      const dayIdx = parseInt(revealBtn.dataset.dayIndex || '0',10);
+      currentLineIndex++;
+      const lines = DAYS[dayIdx].lines;
+      if(currentLineIndex < lines.length){
+        modalMessage.textContent = lines[currentLineIndex];
+      } else {
+        modalMessage.textContent = lines[lines.length-1];
+        revealBtn.disabled = true;
+      }
+    });
+
+    // wiggle on click
+    modalImage.addEventListener('click', ()=>{
+      modalImage.classList.remove('wiggle');
+      // restart
+      void modalImage.offsetWidth;
+      modalImage.classList.add('wiggle');
+    });
+
+    function showModal(){
+      backdrop.style.display = 'flex';
+      backdrop.setAttribute('aria-hidden','false');
+      // focus trap-ish
+      closeBtn.focus();
+    }
+    function hideModal(){
+      backdrop.style.display = 'none';
+      backdrop.setAttribute('aria-hidden','true');
+    }
+
+    // keyboard: Esc to close
+    document.addEventListener('keydown',(e)=>{
+      if(e.key === 'Escape'){
+        hideModal();
+      }
+
+// ---- OWL MODAL ----
+const owlBackdrop = document.getElementById("owlBackdrop");
+const owlCloseBtn = document.getElementById("owlCloseBtn");
+
+function showOwl(){
+  owlBackdrop.style.display = "flex";
+  owlBackdrop.setAttribute("aria-hidden","false");
+  owlCloseBtn.focus();
+}
+
+function hideOwl(){
+  owlBackdrop.style.display = "none";
+  owlBackdrop.setAttribute("aria-hidden","true");
+}
+
+owlCloseBtn.addEventListener("click", hideOwl);
+owlBackdrop.addEventListener("click", (e)=>{
+  if (e.target === owlBackdrop) hideOwl();
+});
+
+// keyboard close
+document.addEventListener("keydown", (e)=>{
+  if (e.key === "Escape") hideOwl();
+});
+
+    });
+
+  })();
+  </script>
 </body>
 </html>
