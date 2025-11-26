@@ -33,37 +33,6 @@
       box-sizing:border-box;
       position:relative;
     }
-    </style>
-
-<div class="modal-backdrop" id="owlBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
-  <div class="modal owl-modal" role="document" aria-label="Locked day">
-    <div class="animal">
-      <div id="owlImage" class="big"></div>
-    </div>
-    <div>
-      <h2 style="margin:0;">Not Today!</h2>
-      <p style="margin-top:8px;color:#5a463f;">
-        That’s not today you cheeky, chupa, cabra…<br>
-        <strong>✨THE CHEEKIEST✨</strong>
-      </p>
-      <div class="controls">
-        <button class="btn" id="owlCloseBtn">Okay</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-.owl-modal {
-  grid-template-columns: 200px 1fr;
-}
-
-#owlImage.big {
-  background-image: url("https://i.imgur.com/5Ag1xN3.png"); /* cartoon grumpy owl */
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
 
     header{
       display:flex;
@@ -414,15 +383,6 @@
     spriteImg.src = SPRITE_PATH;
 
     // open day modal
-    // REAL DATE
-const today = new Date();
-const currentDay = today.getDate();
-
-// If they click ahead of time → show the OWL
-if (i + 1 > currentDay) {
-  showOwl();
-  return;
-}
     let currentLineIndex = 0;
     function openDay(i){
       const meta = window.__spriteMeta;
@@ -492,32 +452,6 @@ if (i + 1 > currentDay) {
       if(e.key === 'Escape'){
         hideModal();
       }
-
-// ---- OWL MODAL ----
-const owlBackdrop = document.getElementById("owlBackdrop");
-const owlCloseBtn = document.getElementById("owlCloseBtn");
-
-function showOwl(){
-  owlBackdrop.style.display = "flex";
-  owlBackdrop.setAttribute("aria-hidden","false");
-  owlCloseBtn.focus();
-}
-
-function hideOwl(){
-  owlBackdrop.style.display = "none";
-  owlBackdrop.setAttribute("aria-hidden","true");
-}
-
-owlCloseBtn.addEventListener("click", hideOwl);
-owlBackdrop.addEventListener("click", (e)=>{
-  if (e.target === owlBackdrop) hideOwl();
-});
-
-// keyboard close
-document.addEventListener("keydown", (e)=>{
-  if (e.key === "Escape") hideOwl();
-});
-
     });
 
   })();
